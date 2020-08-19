@@ -1,8 +1,8 @@
-using Identity.Data;
+using AspNetCore.Identity.Mongo;
+using AspNetCore.Identity.Mongo.Model;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,14 +22,7 @@ namespace Identity
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection")));
-            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddEntityFrameworkStores<ApplicationDbContext>();
-            services.AddRazorPages();
-
-            services.Configure<IdentityOptions>(options =>
+            services.AddIdentityMongoDbProvider<MongoUser, MongoRole>(options =>
             {
                 // Password settings.
                 options.Password.RequireDigit = true;
@@ -47,7 +40,11 @@ namespace Identity
                 // User settings.
                 options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
                 options.User.RequireUniqueEmail = false;
-            });
+            }, mongoIdentityOptions =>
+            {
+                mongoIdentityOptions.ConnectionString = "mongodb+srv://admin:52Oo9zhBp6GvJKw8@cluster0.b7bvw.azure.mongodb.net";
+            }).AddDefaultUI();
+            services.AddRazorPages();
 
             services.ConfigureApplicationCookie(options =>
             {
@@ -67,7 +64,6 @@ namespace Identity
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseDatabaseErrorPage();
             }
             else
             {
